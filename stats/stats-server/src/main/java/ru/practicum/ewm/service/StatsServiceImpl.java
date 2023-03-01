@@ -29,11 +29,13 @@ public class StatsServiceImpl implements StatsService {
             return statsRepository.findAllByIpUnique(start, end, uris)
                     .stream()
                     .map(dto -> new ViewStats(dto.getApp(), dto.getUri(), dto.getHits()))
+                    .sorted((dto1, dto2) -> Integer.compare(dto2.getHits(), dto1.getHits()))
                     .collect(Collectors.toList());
         } else {
             return statsRepository.findAllByIpNotUnique(start, end, uris)
                     .stream()
                     .map(dto -> new ViewStats(dto.getApp(), dto.getUri(), dto.getHits()))
+                    .sorted((dto1, dto2) -> Integer.compare(dto2.getHits(), dto1.getHits()))
                     .collect(Collectors.toList());
         }
     }
