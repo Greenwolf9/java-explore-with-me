@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.ewm.HitDto;
 import ru.practicum.ewm.HitMapper;
 import ru.practicum.ewm.ViewStats;
+import ru.practicum.ewm.ViewStatsMapper;
 import ru.practicum.ewm.model.Hit;
 import ru.practicum.ewm.repository.StatsRepository;
 
@@ -28,13 +29,13 @@ public class StatsServiceImpl implements StatsService {
         if (unique) {
             return statsRepository.findAllByIpUnique(start, end, uris)
                     .stream()
-                    .map(dto -> new ViewStats(dto.getApp(), dto.getUri(), dto.getHits()))
+                    .map(ViewStatsMapper::mapToViewStats)
                     .sorted((dto1, dto2) -> Integer.compare(dto2.getHits(), dto1.getHits()))
                     .collect(Collectors.toList());
         } else {
             return statsRepository.findAllByIpNotUnique(start, end, uris)
                     .stream()
-                    .map(dto -> new ViewStats(dto.getApp(), dto.getUri(), dto.getHits()))
+                    .map(ViewStatsMapper::mapToViewStats)
                     .sorted((dto1, dto2) -> Integer.compare(dto2.getHits(), dto1.getHits()))
                     .collect(Collectors.toList());
         }

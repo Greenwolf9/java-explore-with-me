@@ -28,7 +28,7 @@ public class StatsController {
                                        @RequestParam(value = "end") String end,
                                        @RequestParam(value = "uris") List<String> uris,
                                        @RequestParam(value = "unique", defaultValue = "false") Boolean unique) {
-        log.info("get stats start{}, end{}, uris{}, unique{}", start, end, uris, unique);
+        log.info("get stats start {}, end {}, uris {}, unique {}", start, end, uris, unique);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return statsService.getAllHits(LocalDateTime.parse(start, formatter), LocalDateTime.parse(end, formatter), uris, unique);
     }
