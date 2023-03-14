@@ -1,6 +1,9 @@
 package ru.practicum.ewm;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.service.StatsService;
 
@@ -18,9 +21,11 @@ public class StatsController {
     }
 
     @PostMapping("/hit")
-    public HitDto saveRequest(@RequestBody HitDto hitDto) {
+    public ResponseEntity<HitDto> saveRequest(@RequestBody HitDto hitDto) {
         log.info("post hit {}", hitDto);
-        return statsService.saveHit(hitDto);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(statsService.saveHit(hitDto));
     }
 
     @GetMapping("/stats")

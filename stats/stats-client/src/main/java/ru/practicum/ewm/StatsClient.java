@@ -1,51 +1,51 @@
 package ru.practicum.ewm;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
+import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
 @Service
-public class StatsClient {
-    private final RestTemplate restTemplate;
-    private ObjectMapper mapper;
+public class StatsClient extends BaseClient {
 
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final String API_PREFIX_HIT = "/hit";
     private static final String API_PREFIX_STATS = "/stats";
 
     @Autowired
-    public StatsClient(@Value("${api.host.baseurl}") String serverUrl, RestTemplateBuilder builder) {
-        this.restTemplate = builder
-                .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + API_PREFIX_HIT))
+    public StatsClient(@Value("${stat-server.url}") String serverUrl, RestTemplateBuilder builder) {
+        super(builder
+                .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl))
                 .requestFactory(HttpComponentsClientHttpRequestFactory::new)
-                .build();
+                .build()
+        );
     }
 
-    public ResponseEntity<HitDto> hit(String ip, String uri) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-        HitDto hitDto = HitDto.builder().uri(uri).ip(ip).build();
-        HttpEntity<HitDto> requestEntity = new HttpEntity<>(hitDto, headers);
-        ResponseEntity<HitDto> response = restTemplate.exchange("", HttpMethod.POST, requestEntity, HitDto.class);
-        return prepareResponse(response);
+    public ResponseEntity<Object> hit(HttpServletRequest request) {
+        HitDto hitDto = new HitDto(request.getServerName(),
+                request.getRequestURI(),
+                request.getRemoteAddr(), LocalDateTime.now().format(formatter));
+        return post(API_PREFIX_HIT, hitDto);
     }
 
-    private static ResponseEntity<HitDto> prepareResponse(ResponseEntity<HitDto> response) {
-        if (response.getStatusCode().is2xxSuccessful()) {
-            return response;
-        }
-        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.status(response.getStatusCode());
-        if (response.hasBody()) {
-            return responseBuilder.body(response.getBody());
-        }
-        return responseBuilder.build();
+    public ResponseEntity<Object> stats(String start, String end, List<String> uris, Boolean unique) {
+        Map<String, Object> parameters = Map.of(
+                "start", start,
+                "end", end,
+                "uris", uris,
+                "unique", unique
+        );
+        return get(API_PREFIX_STATS, parameters);
     }
+
+
 }

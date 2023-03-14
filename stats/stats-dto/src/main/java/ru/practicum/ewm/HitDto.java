@@ -5,12 +5,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
-
 @Value
 @Builder
 public class HitDto {
-    @NonNull
-    @NotBlank
+
     String app;
     @NonNull
     @NotBlank
