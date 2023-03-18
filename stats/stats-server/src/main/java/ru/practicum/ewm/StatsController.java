@@ -31,8 +31,8 @@ public class StatsController {
     @GetMapping("/stats")
     public List<ViewStats> getRequests(@RequestParam(value = "start") String start,
                                        @RequestParam(value = "end") String end,
-                                       @RequestParam(value = "uris") List<String> uris,
-                                       @RequestParam(value = "unique", defaultValue = "false") Boolean unique) {
+                                       @RequestParam(value = "uris", required = false) List<String> uris,
+                                       @RequestParam(value = "unique", defaultValue = "false", required = false) Boolean unique) {
         log.info("get stats start {}, end {}, uris {}, unique {}", start, end, uris, unique);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return statsService.getAllHits(LocalDateTime.parse(start, formatter), LocalDateTime.parse(end, formatter), uris, unique);

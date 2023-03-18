@@ -10,7 +10,7 @@ import ru.practicum.ewm.model.Event;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface EventRepository extends JpaRepository<Event, Long> {
+public interface EventRepository extends JpaRepository<Event, Long>, EventRepositoryCustom {
     @Query(value = "select e from Event e where e.initiator.id = :userId ")
     List<Event> findAllByInitiatorId(@Param("userId") Long userId);
 
@@ -30,7 +30,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     @Query(value = "select e.* from events as e " +
             "where (cast(:text as text) is null or e.annotation like :text " +
             "or cast(:text as text) is null or e.description like :text)" +
-            "and (:categories is null OR e.category_id IN (cast(:categories as integer))) " +
+            "and (:categories is null OR e.category_id IN (:categories)) " +
             "and e.paid = cast(:paid as boolean) " +
             "and (cast(:rangeStart as date) is null or e.event_date > (cast(:rangeStart as date)))" +
             "and (cast(:rangeEnd as date) is null or e.event_date < (cast(:rangeEnd as date))) " +

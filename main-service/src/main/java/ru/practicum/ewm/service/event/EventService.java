@@ -33,11 +33,13 @@ public interface EventService {
                                                    int from,
                                                    int size);
 
-    List<EventShortDto> getPublicListOfEventWithParams(String text,
-                                                       List<Long> categories,
-                                                       boolean paid,
-                                                       String rangeStart,
-                                                       String rangeEnd,
-                                                       boolean onlyAvailable,
-                                                       String sort, int from, int size);
+    List<EventShortDto> findFilteredEvents(String text,
+                                           List<Long> categories,
+                                           boolean paid,
+                                           String rangeStart,
+                                           String rangeEnd,
+                                           boolean onlyAvailable,
+                                           String sort, int from, int size);
+
+
 }

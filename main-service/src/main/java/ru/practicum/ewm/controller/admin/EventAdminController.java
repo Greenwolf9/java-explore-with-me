@@ -43,6 +43,4 @@ public class EventAdminController {
         return eventService.findListOfEventByParameters(users, states, categories, rangeStart, rangeEnd, from, size);
 
     }
-
-
 }

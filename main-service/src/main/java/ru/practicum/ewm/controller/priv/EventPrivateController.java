@@ -33,13 +33,14 @@ public class EventPrivateController {
     private final EventService eventService;
     private final RequestService requestService;
 
+
     @Autowired
     public EventPrivateController(EventService eventService, RequestService requestService) {
         this.eventService = eventService;
         this.requestService = requestService;
     }
 
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @PostMapping
     public ResponseEntity<EventFullDto> saveEvent(@PathVariable("userId") Long userId,

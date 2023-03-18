@@ -1,6 +1,9 @@
 package ru.practicum.ewm.controller.pub;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -20,24 +23,26 @@ import java.util.List;
 public class EventPublicController {
     private final EventService eventService;
     private final StatsClient statsClient;
+    ObjectMapper mapper;
 
     @Autowired
-    public EventPublicController(EventService eventService, StatsClient statsClient) {
+    public EventPublicController(EventService eventService, StatsClient statsClient, ObjectMapper mapper) {
         this.eventService = eventService;
         this.statsClient = statsClient;
+        this.mapper = mapper;
     }
 
     @GetMapping("/{id}")
-    public EventFullDto getFullEvent(@PathVariable("id") Long id, HttpServletRequest request) throws NotFoundException, DataIntegrityViolationException {
+    public EventFullDto getFullEvent(@PathVariable("id") Long id, HttpServletRequest request) throws NotFoundException, DataIntegrityViolationException, IOException, InterruptedException {
         log.info("Get full event info by id{} ", id);
         log.info("client ip: {}", request.getRemoteAddr());
-        log.info("endpoint path: {}", request.getPathInfo());
+        log.info("endpoint path: {}", request.getRequestURI());
         statsClient.hit(request);
         return eventService.getEventById(id);
     }
 
     @GetMapping
-    public List<EventShortDto> getPublicListOfEventWithParams(@RequestParam(value = "text", defaultValue = "") String text,
+    public List<EventShortDto> getPublicListOfEventWithParams(@RequestParam(value = "text", required = false) String text,
                                                               @RequestParam(value = "categories", required = false) List<Long> categories,
                                                               @RequestParam(value = "paid", required = false) boolean paid,
                                                               @RequestParam(value = "rangeStart", required = false) String rangeStart,
@@ -49,8 +54,9 @@ public class EventPublicController {
                                                               HttpServletRequest request) {
         log.info("Get full public events info by params ");
         log.info("client ip: {}", request.getRemoteAddr());
-        log.info("endpoint path: {}", request.getPathInfo());
+        log.info("endpoint path: {}", request.getRequestURI());
         statsClient.hit(request);
-        return eventService.getPublicListOfEventWithParams(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
+        return eventService.findFilteredEvents(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
     }
 }
+

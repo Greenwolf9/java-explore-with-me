@@ -13,6 +13,8 @@ public interface EventMapper {
     @Mapping(target = "createdOn", dateFormat = "yyyy-MM-dd HH:mm:ss")
     @Mapping(target = "eventDate", dateFormat = "yyyy-MM-dd HH:mm:ss")
     @Mapping(target = "publishedOn", dateFormat = "yyyy-MM-dd HH:mm:ss")
+    @Mapping(target = "confirmedRequests", ignore = true)
+    @Mapping(target = "views", ignore = true)
     EventFullDto eventToFullDto(Event event);
 
     @Mapping(source = "category", target = "category.id")
