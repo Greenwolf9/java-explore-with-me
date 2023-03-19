@@ -1,6 +1,5 @@
 package ru.practicum.ewm.controller.pub;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -23,13 +22,11 @@ import java.util.List;
 public class EventPublicController {
     private final EventService eventService;
     private final StatsClient statsClient;
-    ObjectMapper mapper;
 
     @Autowired
-    public EventPublicController(EventService eventService, StatsClient statsClient, ObjectMapper mapper) {
+    public EventPublicController(EventService eventService, StatsClient statsClient) {
         this.eventService = eventService;
         this.statsClient = statsClient;
-        this.mapper = mapper;
     }
 
     @GetMapping("/{id}")

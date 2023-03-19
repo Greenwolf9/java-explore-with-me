@@ -20,16 +20,8 @@ public class ApiError {
         timestamp = LocalDateTime.now();
     }
 
-    ApiError(HttpStatus status) {
+    public ApiError(HttpStatus status) {
         this();
-        this.status = status;
-
-    }
-
-    ApiError(HttpStatus status, String message, Throwable ex) {
-        this();
-        this.message = message;
-        this.reason = ex.getLocalizedMessage();
         this.status = status;
 
     }

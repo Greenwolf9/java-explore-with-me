@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.ewm.StatsClient;
 import ru.practicum.ewm.ViewStats;
 import ru.practicum.ewm.dto.event.*;
+import ru.practicum.ewm.dto.request.ConfirmedRequest;
 import ru.practicum.ewm.dto.request.EventRequestStatusUpdateRequest;
 import ru.practicum.ewm.dto.request.EventRequestStatusUpdateResult;
 import ru.practicum.ewm.dto.request.ParticipationRequestDto;
@@ -31,6 +32,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -62,7 +65,6 @@ public class EventServiceImpl implements EventService {
 
     }
 
-    //private : сохранение события конкретного пользователя
     @Override
     public EventFullDto saveEvent(Long userId, NewEventDto newEventDto) throws NotFoundException {
         final User user = userRepository.findById(userId)
@@ -77,7 +79,6 @@ public class EventServiceImpl implements EventService {
         return eventMapper.eventToFullDto(eventRepository.save(event));
     }
 
-    // private : получение конкретного события по идентификатору пользователя
     @Override
     public EventFullDto getEventOfUserById(Long userId, Long eventId) throws NotFoundException {
         final Event event = eventRepository
@@ -88,19 +89,23 @@ public class EventServiceImpl implements EventService {
         return dto;
     }
 
-    // private : получение всех событий по идентификатору пользователя
     @Override
     public List<EventFullDto> getAllEvents(Long userId) {
-        List<EventFullDto> allEventsOfUser = eventRepository
+        List<Long> ids = eventRepository.findIdsOfEvents(userId);
+        Map<Long, Long> confirmedEvents = requestRepository
+                .findAllByListOfEventIds(ids, Status.CONFIRMED).stream().collect(Collectors.toMap(ConfirmedRequest::getEventId, ConfirmedRequest::getConfirmed));
+        Map<Long, EventFullDto> allEventsOfUser = eventRepository
                 .findAllByInitiatorId(userId)
                 .stream().map(eventMapper::eventToFullDto)
-                .collect(Collectors.toList());
-
-        allEventsOfUser.forEach(x -> x.setConfirmedRequests((long) requestRepository.countByStatus(x.getId(), Status.CONFIRMED)));
-        return allEventsOfUser;
+                .collect(Collectors.toMap(EventFullDto::getId, Function.identity()));
+        for (Long id : allEventsOfUser.keySet()) {
+            if (confirmedEvents.containsKey(id)) {
+                allEventsOfUser.values().forEach(x -> x.setConfirmedRequests(confirmedEvents.get(id)));
+            }
+        }
+        return new ArrayList<>(allEventsOfUser.values());
     }
 
-    // private : обновление события по идентификатору события и пользователя
     @Override
     public EventFullDto updateEvent(Long userId, Long eventId, UpdateEventUserRequest updateEventUserRequest) throws NotFoundException {
         final Event eventToBeUpdated = eventRepository
@@ -113,7 +118,6 @@ public class EventServiceImpl implements EventService {
         return eventMapper.eventToFullDto(eventRepository.save(eventToBeUpdated));
     }
 
-    // admin: обновление события администратором
     @Override
     public EventFullDto updateEventByAdmin(Long eventId, UpdateEventAdminRequest updateEventAdminRequest) throws NotFoundException, IncorrectConditionException {
         final Event eventToBeUpdated = eventRepository
@@ -137,7 +141,6 @@ public class EventServiceImpl implements EventService {
         return eventMapper.eventToFullDto(eventRepository.save(eventToBeUpdated));
     }
 
-    // private: обновление статуса заявки на участии в событии
     @Override
     public EventRequestStatusUpdateResult updateStatusOfParticipationRequest(Long userId,
                                                                              Long eventId,
@@ -174,7 +177,6 @@ public class EventServiceImpl implements EventService {
         return new EventRequestStatusUpdateResult(confirmed, rejected);
     }
 
-    // public : публичный запрос конкретного события по его айди
     @Override
     public EventFullDto getEventById(Long id) throws NotFoundException, DataIntegrityViolationException {
         final Event event = eventRepository.findById(id)
@@ -208,7 +210,6 @@ public class EventServiceImpl implements EventService {
         return hits;
     }
 
-    // admin: получение событий с возможностью фильтрации
     @Override
     public List<EventFullDto> findListOfEventByParameters(List<Long> users,
                                                           List<String> states,
@@ -231,7 +232,6 @@ public class EventServiceImpl implements EventService {
                 .peek(e -> e.setViews((long) findStats("/admin/events")))
                 .collect(Collectors.toList());
     }
-    // public: получение событий с возможностью фильтрации
 
     public List<EventShortDto> findFilteredEvents(String text,
                                                   List<Long> categories,

@@ -5,7 +5,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Setter
@@ -23,7 +22,6 @@ public class Event {
     @Column(name = "created_on")
     private LocalDateTime createdOn;
     private String description;
-    @NotNull
     @Column(name = "event_date")
     private LocalDateTime eventDate;
     @Embedded

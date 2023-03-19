@@ -3,6 +3,7 @@ package ru.practicum.ewm.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import ru.practicum.ewm.dto.request.ConfirmedRequest;
 import ru.practicum.ewm.model.ParticipationRequest;
 import ru.practicum.ewm.model.Status;
 
@@ -20,6 +21,9 @@ public interface RequestRepository extends JpaRepository<ParticipationRequest, L
 
     @Query(value = "select r from ParticipationRequest as r where r.id in (:ids) ")
     List<ParticipationRequest> findAllByListOfIds(@Param("ids") List<Long> ids);
+
+    @Query(value = "select distinct(r.event_id) as eventId, count(r.id) as confirmed from requests as r where r.event_id in (:eventIds) and (r.status is null or r.status = cast(:status as varchar)) group by r.event_id", nativeQuery = true)
+    List<ConfirmedRequest> findAllByListOfEventIds(@Param("eventIds") List<Long> eventIds, @Param("status") Status status);
 
     @Query(value = "select r from ParticipationRequest  as r where r.requester.id <> :userId and r.event.id = (:eventId)")
     List<ParticipationRequest> findAllByEventId(@Param("userId") Long userId, @Param("eventId") Long eventId);

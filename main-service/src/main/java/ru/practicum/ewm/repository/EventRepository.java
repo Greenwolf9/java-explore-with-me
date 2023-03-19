@@ -14,6 +14,9 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     @Query(value = "select e from Event e where e.initiator.id = :userId ")
     List<Event> findAllByInitiatorId(@Param("userId") Long userId);
 
+    @Query(value = "select e.id from Event e where e.initiator.id = :userId ")
+    List<Long> findIdsOfEvents(@Param("userId") Long userId);
+
     @Query(value = "select e.* from events as e " +
             "where (:users is null or e.initiator_id IN (cast(:users as integer))) " +
             "and (:states is null or e.state IN (cast(:states as text)))" +
@@ -27,33 +30,4 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
                                             @Param("rangeEnd") LocalDateTime rangeEnd,
                                             Pageable pageable);
 
-    @Query(value = "select e.* from events as e " +
-            "where (cast(:text as text) is null or e.annotation like :text " +
-            "or cast(:text as text) is null or e.description like :text)" +
-            "and (:categories is null OR e.category_id IN (:categories)) " +
-            "and e.paid = cast(:paid as boolean) " +
-            "and (cast(:rangeStart as date) is null or e.event_date > (cast(:rangeStart as date)))" +
-            "and (cast(:rangeEnd as date) is null or e.event_date < (cast(:rangeEnd as date))) " +
-            "or e.event_date > CURRENT_TIMESTAMP order by e.event_date desc", nativeQuery = true)
-    Page<Event> findPublicEventsByParamsByEventDate(@Param("text") String text,
-                                                    @Param("categories") List<Long> categories,
-                                                    @Param("paid") boolean paid,
-                                                    @Param("rangeStart") LocalDateTime rangeStart,
-                                                    @Param("rangeEnd") LocalDateTime rangeEnd,
-                                                    Pageable pageable);
-
-    @Query(value = "select e.* from events as e " +
-            "where (cast(:text as text) is null or e.annotation like :text " +
-            "or cast(:text as text) is null or e.description like :text)" +
-            "and (:categories is null OR e.category_id IN (cast(:categories as integer))) " +
-            "and e.paid = cast(:paid as boolean) " +
-            "and (cast(:rangeStart as date) is null or e.event_date > (cast(:rangeStart as date)))" +
-            "and (cast(:rangeEnd as date) is null or e.event_date < (cast(:rangeEnd as date))) " +
-            "or e.event_date > CURRENT_TIMESTAMP order by e.views desc", nativeQuery = true)
-    Page<Event> findPublicEventsByParamsByViews(@Param("text") String text,
-                                                    @Param("categories") List<Long> categories,
-                                                    @Param("paid") boolean paid,
-                                                    @Param("rangeStart") LocalDateTime rangeStart,
-                                                    @Param("rangeEnd") LocalDateTime rangeEnd,
-                                                    Pageable pageable);
 }
