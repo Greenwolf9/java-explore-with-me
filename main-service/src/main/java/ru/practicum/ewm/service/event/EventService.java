@@ -41,5 +41,5 @@ public interface EventService {
                                            boolean onlyAvailable,
                                            String sort, int from, int size);
 
-
+    public List<EventShortDto> findMostPopularEvents(int from, int size);
 }

@@ -15,7 +15,12 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     List<Event> findAllByInitiatorId(@Param("userId") Long userId);
 
     @Query(value = "select e.id from Event e where e.initiator.id = :userId ")
-    List<Long> findIdsOfEvents(@Param("userId") Long userId);
+    List<Long> findIdsOfEventsByInitiator(@Param("userId") Long userId);
+
+    @Query(value = "select e.id from Event e ")
+    List<Long> findIdsOfEvents();
+
+    Page<Event> findAll(Pageable pageable);
 
     @Query(value = "select e.* from events as e " +
             "where (:users is null or e.initiator_id IN (cast(:users as integer))) " +

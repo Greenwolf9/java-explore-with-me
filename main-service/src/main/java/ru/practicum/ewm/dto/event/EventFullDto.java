@@ -38,4 +38,5 @@ public class EventFullDto {
     @NotNull
     String title;
     Long views;
+    float rating;
 }
