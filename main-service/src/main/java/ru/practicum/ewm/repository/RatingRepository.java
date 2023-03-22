@@ -20,12 +20,14 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
             "r.event.id = :eventId ")
     boolean existsByEventId(@Param("eventId") Long eventId);
 
-    @Query(value = "select ((select count(r.id) as one from ratings as r where r.event_id = :eventId and r.stars = 1)*1 + " +
-            " (select count(r.id) as two from ratings as r where r.event_id = :eventId and r.stars = 2)*2 + " +
-            "(select count(r.id) as three from ratings as r where r.event_id = :eventId and r.stars = 3)*3 + " +
-            "(select count(r.id) as four from ratings as r where r.event_id = :eventId and r.stars = 4)*4 + " +
-            "(select count(r.id) as five from ratings as r where r.event_id = :eventId and r.stars = 5)*5) as score, count(r.id) as responses, r.event_id as eventId " +
-            "from ratings as r where r.event_id = :eventId group by r.event_id ", nativeQuery = true)
+    @Query(value = "with oneStar as (select count(r.id)*1 as one from ratings as r where r.event_id = :eventId and r.stars = 1), " +
+            "twoStar as (select count(r.id)*2 as two from ratings as r where r.event_id = :eventId and r.stars = 2)," +
+            "threeStar as (select count(r.id)*3 as three from ratings as r where r.event_id = :eventId and r.stars = 3)," +
+            "fourStar as (select count(r.id)*4 as four from ratings as r where r.event_id = :eventId and r.stars = 4)," +
+            "fiveStar as (select count(r.id)*5 as five from ratings as r where r.event_id = :eventId and r.stars = 5) " +
+            "select  (q1.one +q2.two + q3.three +q4.four + q5.five) as score, count(r.id) as responses " +
+            "from oneStar q1, twoStar q2, threeStar q3, fourStar q4, fiveStar q5, ratings r " +
+            "where r.event_id = :eventId group by score ", nativeQuery = true)
     Score totalScore(@Param("eventId") Long eventId);
 
 }
