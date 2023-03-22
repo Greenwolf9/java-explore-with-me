@@ -5,12 +5,9 @@ import ru.practicum.ewm.dto.rating.Score;
 public class RatingCalculator {
 
     public static float calcScore(Score score) {
-        float result = 0;
-        try {
-        result = score.getScore() / score.getResponses();
-        } catch (ArithmeticException e) {
-            System.out.println(e.getMessage());
+        if (score.getResponses() == 0) {
+            return score.getScore();
         }
-        return result;
+        return (float) score.getScore() / score.getResponses();
     }
 }
