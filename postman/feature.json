@@ -1,0 +1,832 @@
+{
+	"info": {
+		"_postman_id": "a98646be-129f-41f2-86ab-881179f13718",
+		"name": "Likes",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26486851"
+	},
+	"item": [
+		{
+			"name": "Post raiting for the event",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 201 и данные в формате json\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							"const source = JSON.parse(pm.request.body.raw);\r",
+							"const target = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Рейтинг должен содержать поля: id, stars, comments, reviewerId, eventId\", function () {\r",
+							"pm.expect(target).to.have.property('id');\r",
+							"pm.expect(target).to.have.property('stars');\r",
+							"pm.expect(target).to.have.property('comments');\r",
+							"pm.expect(target).to.have.property('reviewerId');\r",
+							"pm.expect(target).to.have.property('eventId');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {\r",
+							"    pm.expect(target.id).to.not.be.null;\r",
+							"    pm.expect(target.stars).to.be.a(\"number\");\r",
+							"    pm.expect(target.comments).to.be.an(\"string\");\r",
+							"\r",
+							"    pm.expect(source.stars).equal(target.stars, 'Кол-во звезд должно соответствовать указанному при создании');\r",
+							"    pm.expect(source.comments).equal(target.comments, 'Комментарии должны соответствовать указанному при создании');\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"stars\": 5,\r\n    \"comments\": \"The best event ever!\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/:userId/events/:eventId/likes",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						":userId",
+						"events",
+						":eventId",
+						"likes"
+					],
+					"variable": [
+						{
+							"key": "userId",
+							"value": "19",
+							"description": "(Required) id текущего пользователя"
+						},
+						{
+							"key": "eventId",
+							"value": "12",
+							"description": "(Required) id текущего события"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Post raiting for the event without stars",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([400]);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"comments\": \"The worst event ever!\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/:userId/events/:eventId/likes",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						":userId",
+						"events",
+						":eventId",
+						"likes"
+					],
+					"variable": [
+						{
+							"key": "userId",
+							"value": "21",
+							"description": "(Required) id текущего пользователя"
+						},
+						{
+							"key": "eventId",
+							"value": "13",
+							"description": "(Required) id текущего события"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Post raiting for the event that was not attended",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 409\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([409]);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"stars\": 1,\r\n    \"comments\": \"The worst event ever!\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/:userId/events/:eventId/likes",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						":userId",
+						"events",
+						":eventId",
+						"likes"
+					],
+					"variable": [
+						{
+							"key": "userId",
+							"value": "13",
+							"description": "(Required) id текущего пользователя"
+						},
+						{
+							"key": "eventId",
+							"value": "6",
+							"description": "(Required) id текущего события"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Post raiting for the same event",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 409\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([409]);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"stars\": 1,\r\n    \"comments\": \"The worst event ever!\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/:userId/events/:eventId/likes",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						":userId",
+						"events",
+						":eventId",
+						"likes"
+					],
+					"variable": [
+						{
+							"key": "userId",
+							"value": "19",
+							"description": "(Required) id текущего пользователя"
+						},
+						{
+							"key": "eventId",
+							"value": "12",
+							"description": "(Required) id текущего события"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Post raiting for the another event",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 201 и данные в формате json\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							"const source = JSON.parse(pm.request.body.raw);\r",
+							"const target = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Рейтинг должен содержать поля: id, stars, comments, reviewerId, eventId\", function () {\r",
+							"pm.expect(target).to.have.property('id');\r",
+							"pm.expect(target).to.have.property('stars');\r",
+							"pm.expect(target).to.have.property('comments');\r",
+							"pm.expect(target).to.have.property('reviewerId');\r",
+							"pm.expect(target).to.have.property('eventId');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {\r",
+							"    pm.expect(target.id).to.not.be.null;\r",
+							"    pm.expect(target.stars).to.be.a(\"number\");\r",
+							"    pm.expect(target.comments).to.be.an(\"string\");\r",
+							"\r",
+							"    pm.expect(source.stars).equal(target.stars, 'Кол-во звезд должно соответствовать указанному при создании');\r",
+							"    pm.expect(source.comments).equal(target.comments, 'Комментарии должны соответствовать указанному при создании');\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"stars\": 3,\r\n    \"comments\": \"I'm not a fan!\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/:userId/events/:eventId/likes",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						":userId",
+						"events",
+						":eventId",
+						"likes"
+					],
+					"variable": [
+						{
+							"key": "userId",
+							"value": "54",
+							"description": "(Required) id текущего пользователя"
+						},
+						{
+							"key": "eventId",
+							"value": "32",
+							"description": "(Required) id текущего события"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get raiting by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function() {\r",
+							"    pm.response.to.be.ok; // код ответа должен быть равен 200 OK\r",
+							"    pm.response.to.be.withBody; // ответ должен содержать тело\r",
+							"    pm.response.to.be.json; // и тело ответа должно быть в формате JSON\r",
+							"}); \r",
+							"\r",
+							"const target = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Рейтинг должен содержать поля: id, stars, comments, reviewerId, eventId\", function () {\r",
+							"pm.expect(target).to.have.property('id');\r",
+							"pm.expect(target).to.have.property('stars');\r",
+							"pm.expect(target).to.have.property('comments');\r",
+							"pm.expect(target).to.have.property('reviewerId');\r",
+							"pm.expect(target).to.have.property('eventId');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {\r",
+							"    \r",
+							"    pm.expect(target.id, '\"id\" field').to.eql(1);\r",
+							"    pm.expect(target.stars, '\"stars\" field').to.eql(5);\r",
+							"    pm.expect(target.comments, '\"comments\" field').to.eql('The best event ever!');\r",
+							"\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/users/:userId/events/:eventId/likes/:id",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						":userId",
+						"events",
+						":eventId",
+						"likes",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "userId",
+							"value": "19",
+							"description": "(Required) id текущего пользователя"
+						},
+						{
+							"key": "eventId",
+							"value": "12",
+							"description": "(Required) id текущего события"
+						},
+						{
+							"key": "id",
+							"value": "1",
+							"description": "(Required) id рейтинга текущего события и пользователя"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get raiting all by eventId",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function () {\r",
+							"    pm.response.to.be.ok;    \r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							"const target = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Рейтинг должен содержать поля: id, stars, comments, reviewerId, eventId\", function () {\r",
+							"pm.expect(target[0]).to.have.property('id');\r",
+							"pm.expect(target[0]).to.have.property('stars');\r",
+							"pm.expect(target[0]).to.have.property('comments');\r",
+							"pm.expect(target[0]).to.have.property('reviewerId');\r",
+							"pm.expect(target[0]).to.have.property('eventId');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {\r",
+							"    pm.expect(target.length, 'rating count in total').to.eql(1);\r",
+							"    pm.expect(target[0].id, 'result[0]: \"id\" field').to.eql(1);\r",
+							"    pm.expect(target[0].stars, 'result[0]: \"stars\" field').to.eql(5);\r",
+							"    pm.expect(target[0].comments, 'result[0]: \"comments\" field').to.eql('The best event ever!');\r",
+							"\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/users/:userId/events/:eventId/likes",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						":userId",
+						"events",
+						":eventId",
+						"likes"
+					],
+					"variable": [
+						{
+							"key": "userId",
+							"value": "19",
+							"description": "(Required) id текущего пользователя"
+						},
+						{
+							"key": "eventId",
+							"value": "12",
+							"description": "(Required) id текущего события"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get priv event by id with rating",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function () {\r",
+							"    pm.response.to.be.ok;    \r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							"const target = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Событие должно содержать поля: id, title, annotation, category, paid, eventDate, initiator, description, participantLimit, state, createdOn, location, requestModeration, rating\", function () {\r",
+							"pm.expect(target).to.have.property('id');\r",
+							"pm.expect(target).to.have.property('title');\r",
+							"pm.expect(target).to.have.property('annotation');\r",
+							"pm.expect(target).to.have.property('category');\r",
+							"pm.expect(target).to.have.property('paid');\r",
+							"pm.expect(target).to.have.property('eventDate');\r",
+							"pm.expect(target).to.have.property('initiator');\r",
+							"pm.expect(target).to.have.property('description');\r",
+							"pm.expect(target).to.have.property('participantLimit');\r",
+							"pm.expect(target).to.have.property('state');\r",
+							"pm.expect(target).to.have.property('createdOn');\r",
+							"pm.expect(target).to.have.property('location');\r",
+							"pm.expect(target).to.have.property('requestModeration');\r",
+							"pm.expect(target).to.have.property('rating');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {\r",
+							"    pm.expect(target.id).to.not.be.null;\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/users/:userId/events/:eventId",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						":userId",
+						"events",
+						":eventId"
+					],
+					"variable": [
+						{
+							"key": "userId",
+							"value": "19"
+						},
+						{
+							"key": "eventId",
+							"value": "12"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all publ events with rating",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function () {\r",
+							"    pm.response.to.be.ok;    \r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							"const target = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Событие должно содержать поля: annotation, category, confirmedRequests, eventDate, id, initiator, paid, title, views, rating\", function () {\r",
+							"\r",
+							"pm.expect(target[0]).to.have.property('annotation');\r",
+							"pm.expect(target[0]).to.have.property('category');\r",
+							"pm.expect(target[0]).to.have.property('confirmedRequests');\r",
+							"pm.expect(target[0]).to.have.property('eventDate');\r",
+							"pm.expect(target[0]).to.have.property('id');\r",
+							"pm.expect(target[0]).to.have.property('initiator');\r",
+							"pm.expect(target[0]).to.have.property('paid');\r",
+							"pm.expect(target[0]).to.have.property('title');\r",
+							"pm.expect(target[0]).to.have.property('views');\r",
+							"pm.expect(target[0]).to.have.property('rating');\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/events",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"events"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get most popular events",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 200 и данные в формате json\", function () {\r",
+							"    pm.response.to.be.ok;    \r",
+							"    pm.response.to.be.withBody;\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/events/popular?from=0&size=10",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"events",
+						"popular"
+					],
+					"query": [
+						{
+							"key": "from",
+							"value": "0"
+						},
+						{
+							"key": "size",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Del raiting by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Ответ должен содержать код статуса 204\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/users/:userId/events/:eventId/likes/:id",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						":userId",
+						"events",
+						":eventId",
+						"likes",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "userId",
+							"value": "19",
+							"description": "(Required) id текущего пользователя"
+						},
+						{
+							"key": "eventId",
+							"value": "12",
+							"description": "(Required) id текущего события"
+						},
+						{
+							"key": "id",
+							"value": "1",
+							"description": "(Required) id рейтинга текущего события и пользователя"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "uid",
+			"value": "6"
+		},
+		{
+			"key": "1",
+			"value": "uid"
+		},
+		{
+			"key": "id",
+			"value": "1"
+		}
+	]
+}

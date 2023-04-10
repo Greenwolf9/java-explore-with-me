@@ -1,7 +1,6 @@
 package ru.practicum.ewm.dto.event;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Setter;
 import lombok.Value;
 import ru.practicum.ewm.model.Location;
 
@@ -9,7 +8,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 @Value
-@Setter
 public class UpdateEventAdminRequest {
 
     @NotNull

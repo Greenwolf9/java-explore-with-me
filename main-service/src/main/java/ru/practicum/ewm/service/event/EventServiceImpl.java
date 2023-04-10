@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.ewm.StatsClient;
 import ru.practicum.ewm.ViewStats;
 import ru.practicum.ewm.dto.event.*;
+import ru.practicum.ewm.dto.rating.Score;
 import ru.practicum.ewm.dto.request.ConfirmedRequest;
 import ru.practicum.ewm.dto.request.EventRequestStatusUpdateRequest;
 import ru.practicum.ewm.dto.request.EventRequestStatusUpdateResult;
@@ -21,18 +22,14 @@ import ru.practicum.ewm.exceptions.NotFoundException;
 import ru.practicum.ewm.mappers.EventMapper;
 import ru.practicum.ewm.mappers.RequestMapper;
 import ru.practicum.ewm.model.*;
-import ru.practicum.ewm.repository.CategoryRepository;
-import ru.practicum.ewm.repository.EventRepository;
-import ru.practicum.ewm.repository.RequestRepository;
-import ru.practicum.ewm.repository.UserRepository;
+import ru.practicum.ewm.repository.*;
+import ru.practicum.ewm.service.rating.RatingCalculator;
 
 import javax.validation.ValidationException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -42,6 +39,7 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final CategoryRepository categoryRepository;
     private final RequestRepository requestRepository;
+    private final RatingRepository ratingRepository;
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -57,11 +55,13 @@ public class EventServiceImpl implements EventService {
     public EventServiceImpl(UserRepository userRepository,
                             EventRepository eventRepository,
                             CategoryRepository categoryRepository,
-                            RequestRepository requestRepository) {
+                            RequestRepository requestRepository,
+                            RatingRepository ratingRepository) {
         this.userRepository = userRepository;
         this.eventRepository = eventRepository;
         this.categoryRepository = categoryRepository;
         this.requestRepository = requestRepository;
+        this.ratingRepository = ratingRepository;
 
     }
 
@@ -86,12 +86,15 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " doesn't exist."));
         EventFullDto dto = eventMapper.eventToFullDto(event);
         dto.setConfirmedRequests((long) requestRepository.countByStatus(event.getId(), Status.CONFIRMED));
+        if (ratingRepository.existsByEventIdAndReviewerId(eventId, userId)) {
+            dto.setRating(RatingCalculator.calcScore(ratingRepository.totalScore(eventId)));
+        }
         return dto;
     }
 
     @Override
     public List<EventFullDto> getAllEvents(Long userId) {
-        List<Long> ids = eventRepository.findIdsOfEvents(userId);
+        List<Long> ids = eventRepository.findIdsOfEventsByInitiator(userId);
         Map<Long, Long> confirmedEvents = requestRepository
                 .findAllByListOfEventIds(ids, Status.CONFIRMED).stream().collect(Collectors.toMap(ConfirmedRequest::getEventId, ConfirmedRequest::getConfirmed));
         Map<Long, EventFullDto> allEventsOfUser = eventRepository
@@ -100,7 +103,7 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toMap(EventFullDto::getId, Function.identity()));
         for (Long id : allEventsOfUser.keySet()) {
             if (confirmedEvents.containsKey(id)) {
-                allEventsOfUser.values().forEach(x -> x.setConfirmedRequests(confirmedEvents.get(id)));
+                allEventsOfUser.get(id).setConfirmedRequests(confirmedEvents.get(id));
             }
         }
         return new ArrayList<>(allEventsOfUser.values());
@@ -187,6 +190,9 @@ public class EventServiceImpl implements EventService {
         EventFullDto eventFullDto = eventMapper.eventToFullDto(event);
         eventFullDto.setConfirmedRequests((long) requestRepository.countByStatus(id, Status.CONFIRMED));
         eventFullDto.setViews((long) findStats("/events/" + id));
+        if (ratingRepository.existsByEventIdAndReviewerId(eventFullDto.getId(), eventFullDto.getInitiator().getId())) {
+            eventFullDto.setRating(RatingCalculator.calcScore(ratingRepository.totalScore(eventFullDto.getId())));
+        }
         return eventMapper.eventToFullDto(event);
     }
 
@@ -240,7 +246,18 @@ public class EventServiceImpl implements EventService {
                                                   String rangeEnd,
                                                   boolean onlyAvailable,
                                                   String sort, int from, int size) {
-        return eventRepository
+
+        List<Long> ids = eventRepository.findIdsOfEvents();
+        Map<Long, Long> confirmedEvents = requestRepository.findAllByListOfEventIds(ids, Status.CONFIRMED)
+                .stream().collect(Collectors.toMap(ConfirmedRequest::getEventId, ConfirmedRequest::getConfirmed));
+        Map<Long, Score> scoreMap = new HashMap<>();
+        for (Long id : ids) {
+            if (ratingRepository.existsByEventId(id)) {
+                scoreMap.put(id, ratingRepository.totalScore(id));
+            }
+        }
+
+        Map<Long, EventFullDto> allPublicEvents = eventRepository
                 .findFilteredEvents(text,
                         categories,
                         paid,
@@ -248,18 +265,49 @@ public class EventServiceImpl implements EventService {
                         rangeEnd != null ? LocalDateTime.parse(rangeEnd, formatter) : null, sort,
                         from, size)
                 .stream().map(eventMapper::eventToFullDto)
-                .peek(e -> e.setConfirmedRequests((long) requestRepository.countByStatus(e.getId(), Status.CONFIRMED)))
                 .peek(e -> e.setViews((long) findStats("/events")))
+                .collect(Collectors.toMap(EventFullDto::getId, Function.identity()));
+
+        for (Long id : allPublicEvents.keySet()) {
+            if (confirmedEvents.containsKey(id)) {
+                allPublicEvents.get(id).setConfirmedRequests(confirmedEvents.get(id));
+            }
+            if (scoreMap.containsKey(id)) {
+                allPublicEvents.get(id).setRating(RatingCalculator.calcScore(scoreMap.get(id)));
+            }
+        }
+
+        return allPublicEvents.values().stream()
                 .filter(a -> !onlyAvailable || a.getConfirmedRequests() < a.getParticipantLimit())
-                .map(dto -> new EventShortDto(dto.getAnnotation(),
-                        dto.getCategory(),
-                        dto.getConfirmedRequests(),
-                        dto.getEventDate(),
-                        dto.getId(),
-                        dto.getInitiator(),
-                        dto.getPaid(),
-                        dto.getTitle(),
-                        dto.getViews()))
+                .map(eventMapper::fromFullToShort)
+                .collect(Collectors.toList());
+    }
+
+    public List<EventShortDto> findMostPopularEvents(int from, int size) {
+        Map<Long, EventFullDto> popularEvents = eventRepository.findAll(PageRequest.of(from / size, size)).getContent()
+                .stream().map(eventMapper::eventToFullDto)
+                .peek(e -> e.setViews((long) findStats("/events/popular")))
+                .collect(Collectors.toMap(EventFullDto::getId, Function.identity()));
+
+        List<Long> ids = eventRepository.findIdsOfEvents();
+        Map<Long, Long> confirmedEvents = requestRepository.findAllByListOfEventIds(ids, Status.CONFIRMED)
+                .stream().collect(Collectors.toMap(ConfirmedRequest::getEventId, ConfirmedRequest::getConfirmed));
+        Map<Long, Score> scoreMap = new HashMap<>();
+        for (Long id : ids) {
+            if (ratingRepository.existsByEventId(id)) {
+                scoreMap.put(id, ratingRepository.totalScore(id));
+            }
+        }
+        for (Long id : popularEvents.keySet()) {
+            if (confirmedEvents.containsKey(id)) {
+                popularEvents.get(id).setConfirmedRequests(confirmedEvents.get(id));
+            }
+            if (scoreMap.containsKey(id)) {
+                popularEvents.get(id).setRating(RatingCalculator.calcScore(scoreMap.get(id)));
+            }
+        }
+        return popularEvents.values().stream().map(eventMapper::fromFullToShort).filter(e -> e.getRating() > 0.0)
+                .sorted(Comparator.comparingDouble(EventShortDto::getRating).reversed())
                 .collect(Collectors.toList());
     }
 }

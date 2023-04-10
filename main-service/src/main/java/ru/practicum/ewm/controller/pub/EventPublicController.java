@@ -55,5 +55,16 @@ public class EventPublicController {
         statsClient.hit(request);
         return eventService.findFilteredEvents(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
     }
+
+    @GetMapping("/popular")
+    public List<EventShortDto> getMostPopularEvents(@RequestParam(value = "from", defaultValue = "0") int from,
+                                                    @RequestParam(value = "size", defaultValue = "10") int size,
+                                                    HttpServletRequest request) {
+        log.info("Get most popular events info by params ");
+        log.info("client ip: {}", request.getRemoteAddr());
+        log.info("endpoint path: {}", request.getRequestURI());
+        statsClient.hit(request);
+        return eventService.findMostPopularEvents(from, size);
+    }
 }
 

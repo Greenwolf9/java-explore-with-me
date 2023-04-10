@@ -1,6 +1,5 @@
 package ru.practicum.ewm.dto.event;
 
-import lombok.Setter;
 import lombok.Value;
 import ru.practicum.ewm.dto.category.CategoryDto;
 import ru.practicum.ewm.dto.user.UserShortDto;
@@ -8,7 +7,6 @@ import ru.practicum.ewm.dto.user.UserShortDto;
 import javax.validation.constraints.NotNull;
 
 @Value
-@Setter
 public class EventShortDto {
     @NotNull
     String annotation;
@@ -25,5 +23,6 @@ public class EventShortDto {
     @NotNull
     String title;
     Long views;
+    float rating;
 
 }
